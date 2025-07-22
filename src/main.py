@@ -3,7 +3,7 @@ from parser import Parser
 from interpreter import Interpreter
 
 def main():
-    with open('../examples/hello_world.fem', 'r') as f:
+    with open('../examples/variables.fem', 'r') as f:
         text = f.read()
 
     lexer = Lexer(text)

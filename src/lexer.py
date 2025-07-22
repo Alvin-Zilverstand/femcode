@@ -20,11 +20,14 @@ class Lexer:
         if self.pos > len(self.text) - 1:
             return Token('EOF', None)
 
-        current_char = self.text[self.pos]
-
-        if current_char.isspace():
+        # Skip whitespace
+        while self.pos < len(self.text) and self.text[self.pos].isspace():
             self.pos += 1
-            return self.get_next_token()
+
+        if self.pos > len(self.text) - 1:
+            return Token('EOF', None)
+
+        current_char = self.text[self.pos]
 
         if current_char == '"':
             self.pos += 1
@@ -35,9 +38,20 @@ class Lexer:
             self.pos = string_end + 1
             return Token('STRING', string)
 
+        # Match keywords
         if re.match(r'\bUwU Boy\b', self.text[self.pos:]):
             self.pos += 7
             return Token('PRINT', 'UwU Boy')
+        if re.match(r'\bis\b', self.text[self.pos:]):
+            self.pos += 2
+            return Token('ASSIGN', 'is')
+
+        # Match identifiers
+        match = re.match(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', self.text[self.pos:])
+        if match:
+            value = match.group(0)
+            self.pos += len(value)
+            return Token('ID', value)
 
         self.error()
 
