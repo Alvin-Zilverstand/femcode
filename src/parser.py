@@ -1,6 +1,17 @@
 class AST:
     pass
 
+class Number(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
+class BinOp(AST):
+    def __init__(self, left, op, right):
+        self.left = left
+        self.token = self.op = op
+        self.right = right
+
 class Print(AST):
     def __init__(self, value):
         self.value = value
@@ -48,19 +59,19 @@ class Parser:
         if token.type == 'ID' and self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == 'ASSIGN':
             return self.parse_assignment_statement()
         elif token.type == 'ID':
-            raise Exception(f"Unexpected identifier '{token.value}' without assignment.")
+            # This case should be handled by expression parsing if it's part of an expression
+            # For now, raise an error if it's a standalone ID not part of assignment or print
+            raise Exception(f"Unexpected identifier '{token.value}' without assignment or print.")
 
+        # Handle expressions as statements (e.g., just a number or an arithmetic operation)
+        # This might need refinement depending on what we consider a valid standalone statement
+        # For now, let's assume expressions are only part of print or assignment
         raise Exception(f"Invalid statement starting with token {token.type}")
 
     def parse_print_statement(self):
         self.get_next_token()  # Consume PRINT token
-        token = self.get_next_token()
-        if token.type == 'STRING':
-            return Print(token.value)
-        elif token.type == 'ID':
-            return Print(Variable(token))
-        else:
-            raise Exception("Expected a string or variable after 'UwU Boy'")
+        expr = self.expression()
+        return Print(expr)
 
     def parse_assignment_statement(self):
         var_token = self.get_next_token()
@@ -68,8 +79,30 @@ class Parser:
         
         assign_token = self.get_next_token()
 
-        value_token = self.get_next_token()
-        if value_token.type == 'STRING':
-            return Assign(left=var_node, op=assign_token, right=value_token.value)
+        right_expr = self.expression()
+        return Assign(left=var_node, op=assign_token, right=right_expr)
+
+    def factor(self):
+        token = self.get_next_token()
+        if token.type == 'INTEGER':
+            return Number(token)
+        elif token.type == 'STRING':
+            return token.value # Strings are literals, not AST nodes for now
+        elif token.type == 'ID':
+            return Variable(token)
         else:
-            raise Exception("Expected a string value for assignment")
+            raise Exception(f"Expected integer, string or identifier, got {token.type}")
+
+    def term(self):
+        node = self.factor()
+        while self.peek_next_token().type in ('MUL', 'DIV'):
+            token = self.get_next_token()
+            node = BinOp(left=node, op=token, right=self.factor())
+        return node
+
+    def expression(self):
+        node = self.term()
+        while self.peek_next_token().type in ('PLUS', 'MINUS'):
+            token = self.get_next_token()
+            node = BinOp(left=node, op=token, right=self.term())
+        return node

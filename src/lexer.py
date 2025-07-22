@@ -38,6 +38,25 @@ class Lexer:
             self.pos = string_end + 1
             return Token('STRING', string)
 
+        if current_char.isdigit():
+            start_pos = self.pos
+            while self.pos < len(self.text) and self.text[self.pos].isdigit():
+                self.pos += 1
+            return Token('INTEGER', int(self.text[start_pos:self.pos]))
+
+        if current_char == '+':
+            self.pos += 1
+            return Token('PLUS', '+')
+        if current_char == '-':
+            self.pos += 1
+            return Token('MINUS', '-')
+        if current_char == '*':
+            self.pos += 1
+            return Token('MUL', '*')
+        if current_char == '/':
+            self.pos += 1
+            return Token('DIV', '/')
+
         # Match keywords
         if re.match(r'\bUwU Boy\b', self.text[self.pos:]):
             self.pos += 7
