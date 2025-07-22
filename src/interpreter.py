@@ -135,6 +135,14 @@ class Interpreter:
     def visit_ContinueStatement(self, node):
         raise ContinueLoop()
 
+    def visit_TryExceptStatement(self, node):
+        try:
+            self.visit(node.try_block)
+        except Exception as e:
+            # For now, catch all Python exceptions and execute the except block
+            # In a more advanced interpreter, you might map specific Femcode errors
+            self.visit(node.except_block)
+
     def visit_List(self, node):
         elements = [self.visit(element) for element in node.elements]
         return elements

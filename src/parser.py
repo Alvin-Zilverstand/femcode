@@ -81,17 +81,10 @@ class BreakStatement(AST):
 class ContinueStatement(AST):
     pass
 
-class ForStatement(AST):
-    def __init__(self, var_name, iterable, body):
-        self.var_name = var_name
-        self.iterable = iterable
-        self.body = body
-
-class BreakStatement(AST):
-    pass
-
-class ContinueStatement(AST):
-    pass
+class TryExceptStatement(AST):
+    def __init__(self, try_block, except_block):
+        self.try_block = try_block
+        self.except_block = except_block
 
 class FunctionDefinition(AST):
     def __init__(self, name, parameters, body):
@@ -191,6 +184,9 @@ class Parser:
         if token.type == 'CONTINUE':
             self.consume('CONTINUE')
             return ContinueStatement()
+
+        if token.type == 'TRY':
+            return self.parse_try_except_statement()
 
         raise Exception(f"Invalid statement starting with token {token.type}")
 
@@ -316,12 +312,18 @@ class Parser:
         if token.type == 'INTEGER':
             self.consume('INTEGER')
             return Number(token)
+        elif token.type == 'FLOAT':
+            self.consume('FLOAT')
+            return Number(token) # Using Number AST for both int and float for now
         elif token.type == 'STRING':
             self.consume('STRING')
             return String(token)
         elif token.type == 'KAWAII' or token.type == 'CRINGE':
             self.consume(token.type)
             return Boolean(token)
+        elif token.type == 'NULL':
+            self.consume('NULL')
+            return Null()
         elif token.type == 'ID':
             # Consume the ID token first
             self.consume('ID')
@@ -332,7 +334,7 @@ class Parser:
                 return self.parse_function_call(token)
             elif next_token.type == 'DOT':
                 # It's a property access
-                return self.parse_property_access(Variable(token))
+                return self.parse_property_access(Variable(token)) # Pass Variable node as target
             elif next_token.type == 'LBRACKET':
                 # It's an index access
                 return self.parse_index_access(Variable(token))
@@ -465,3 +467,26 @@ class Parser:
         property_name_token = self.get_current_token()
         self.consume('ID')
         return PropertyAccess(target_node, property_name_token.value)
+
+    def parse_try_except_statement(self):
+        self.consume('TRY')
+        self.consume('FEMBOYCORE')
+        try_block_statements = []
+        while self.get_current_token().type != 'PERIODT':
+            if self.get_current_token().type == 'EOF':
+                raise Exception("Unterminated try block: Expected 'Periodt'")
+            try_block_statements.append(self.parse_statement())
+        self.consume('PERIODT')
+        try_block = Block(try_block_statements)
+
+        self.consume('EXCEPT')
+        self.consume('FEMBOYCORE')
+        except_block_statements = []
+        while self.get_current_token().type != 'PERIODT':
+            if self.get_current_token().type == 'EOF':
+                raise Exception("Unterminated except block: Expected 'Periodt'")
+            except_block_statements.append(self.parse_statement())
+        self.consume('PERIODT')
+        except_block = Block(except_block_statements)
+
+        return TryExceptStatement(try_block, except_block)

@@ -164,6 +164,24 @@ class Lexer:
         if re.match(r'\bContinue\b', self.text[self.pos:]):
             self.pos += len('Continue')
             return Token('CONTINUE', 'Continue')
+        if re.match(r'\bTwink\b', self.text[self.pos:]):
+            self.pos += len('Twink')
+            return Token('TRY', 'Twink')
+        if re.match(r'\bBimboy\b', self.text[self.pos:]):
+            self.pos += len('Bimboy')
+            return Token('EXCEPT', 'Bimboy')
+        if re.match(r'\band\b', self.text[self.pos:]):
+            self.pos += len('and')
+            return Token('AND', 'and')
+        if re.match(r'\bor\b', self.text[self.pos:]):
+            self.pos += len('or')
+            return Token('OR', 'or')
+        if re.match(r'\bTwink\b', self.text[self.pos:]):
+            self.pos += len('Twink')
+            return Token('TRY', 'Twink')
+        if re.match(r'\bBimboy\b', self.text[self.pos:]):
+            self.pos += len('Bimboy')
+            return Token('EXCEPT', 'Bimboy')
         if re.match(r'\band\b', self.text[self.pos:]):
             self.pos += len('and')
             return Token('AND', 'and')
