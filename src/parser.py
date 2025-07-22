@@ -196,8 +196,25 @@ class Parser:
         if name_token.type != 'ID':
             raise Exception("Expected function name (ID)")
         
-        # For simplicity, assume no parameters for now
+        print(f"After function name: {self.peek_next_token()}")
+
+        # Parse parameters
         parameters = []
+        if self.peek_next_token().type == 'LPAREN':
+            self.get_next_token() # Consume '('
+            print(f"After LPAREN: {self.peek_next_token()}")
+            while self.peek_next_token().type != 'RPAREN':
+                param_token = self.get_next_token()
+                if param_token.type != 'ID':
+                    raise Exception("Expected parameter name (ID)")
+                parameters.append(param_token.value)
+                print(f"After parameter {param_token.value}: {self.peek_next_token()}")
+                if self.peek_next_token().type == 'COMMA':
+                    self.get_next_token() # Consume ','
+                    print(f"After COMMA: {self.peek_next_token()}")
+                # No 'elif' here, the loop condition handles the RPAREN
+            self.get_next_token() # Consume ')'
+            print(f"After RPAREN: {self.peek_next_token()}")
 
         if self.peek_next_token().type != 'FEMBOYCORE':
             raise Exception("Expected 'Femboycore' to start function body")
@@ -258,9 +275,12 @@ class Parser:
     def parse_function_call(self, name_token):
         self.get_next_token() # Consume '('
         arguments = []
-        # For simplicity, assume no arguments for now
-        if self.peek_next_token().value == ')':
-            self.get_next_token() # Consume ')'
-        else:
-            raise Exception("Expected ')' after function call")
+        if self.peek_next_token().type != 'RPAREN':
+            while True:
+                arguments.append(self.expression())
+                if self.peek_next_token().type == 'COMMA':
+                    self.get_next_token() # Consume ','
+                else:
+                    break # Exit loop if not COMMA (implies RPAREN or EOF)
+        self.get_next_token() # Consume ')'
         return FunctionCall(name_token.value, arguments)

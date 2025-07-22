@@ -31,11 +31,13 @@ class Lexer:
 
         if current_char == '"':
             self.pos += 1
-            string_end = self.text.find('"', self.pos)
-            if string_end == -1:
-                self.error()
-            string = self.text[self.pos:string_end]
-            self.pos = string_end + 1
+            start_string = self.pos
+            while self.pos < len(self.text) and self.text[self.pos] != '"':
+                self.pos += 1
+            if self.pos == len(self.text):
+                self.error() # Unterminated string
+            string = self.text[start_string:self.pos]
+            self.pos += 1 # Consume closing quote
             return Token('STRING', string)
 
         if current_char.isdigit():
@@ -65,6 +67,9 @@ class Lexer:
         if current_char == '/':
             self.pos += 1
             return Token('DIV', '/')
+        if current_char == ',':
+            self.pos += 1
+            return Token('COMMA', ',')
         if current_char == '=':
             if self.pos + 1 < len(self.text) and self.text[self.pos + 1] == '=':
                 self.pos += 2

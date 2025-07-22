@@ -1,8 +1,12 @@
 class Interpreter:
     def __init__(self, ast):
         self.ast = ast
-        self.variables = {}
+        self.scope_stack = [{}]
         self.functions = {}
+
+    @property
+    def current_scope(self):
+        return self.scope_stack[-1]
 
     def interpret(self):
         for node in self.ast:
@@ -57,14 +61,15 @@ class Interpreter:
     def visit_Assign(self, node):
         var_name = node.left.value
         value = self.visit(node.right)
-        self.variables[var_name] = value
+        self.current_scope[var_name] = value
 
     def visit_Variable(self, node):
         var_name = node.value
-        if var_name in self.variables:
-            return self.variables[var_name]
-        else:
-            raise NameError(f"name '{var_name}' is not defined")
+        # Search up the scope stack for the variable
+        for scope in reversed(self.scope_stack):
+            if var_name in scope:
+                return scope[var_name]
+        raise NameError(f"name '{var_name}' is not defined")
 
     def visit_Block(self, node):
         for statement in node.statements:
@@ -93,14 +98,27 @@ class Interpreter:
             raise NameError(f"Function '{func_name}' is not defined")
 
         func_info = self.functions[func_name]
-        # For simplicity, no arguments are passed for now
-        # In a real interpreter, you'd push a new scope and bind arguments to parameters
+
+        # Evaluate arguments
+        evaluated_arguments = [self.visit(arg) for arg in node.arguments]
+
+        # Create a new scope for the function call
+        new_scope = {}
+        for i, param_name in enumerate(func_info['parameters']):
+            new_scope[param_name] = evaluated_arguments[i]
+
+        self.scope_stack.append(new_scope)
 
         # Execute function body
         try:
             self.visit(func_info['body'])
         except ReturnValue as e:
+            self.scope_stack.pop() # Pop the function scope
             return e.value
+        finally:
+            # Ensure scope is popped even if no return or an error occurs
+            if len(self.scope_stack) > 1: # Don't pop global scope
+                self.scope_stack.pop()
 
     def visit_ReturnStatement(self, node):
         raise ReturnValue(self.visit(node.value))
