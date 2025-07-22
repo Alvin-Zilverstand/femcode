@@ -74,6 +74,48 @@ To use `femterpreter` from any directory, you can either add it to your system's
 
 ## 2. Basic Syntax
 
+### Running Femcode Programs
+
+Once you have the `femterpreter` script, you can run your Femcode programs like this:
+
+```bash
+./femterpreter examples/your_program.fem
+```
+
+Or, if you add `femterpreter` to your system's PATH or create an alias (recommended for convenience):
+
+```bash
+femterpreter examples/your_program.fem
+```
+
+### Setting up `femterpreter` (Optional, but Recommended)
+
+To use `femterpreter` from any directory, you can either add it to your system's PATH or create a shell alias.
+
+**Option 1: Add to PATH**
+
+1.  Open your shell's configuration file (e.g., `~/.bashrc`, `~/.zshrc`, or `~/.profile`).
+2.  Add the following line, replacing `/path/to/femboy-coding-language` with the actual absolute path to your `femboy-coding-language` directory:
+
+    ```bash
+    export PATH="/path/to/femboy-coding-language/femcode:$PATH"
+    ```
+
+3.  Save the file and restart your terminal or run `source ~/.bashrc` (or your respective config file).
+
+**Option 2: Create an Alias**
+
+1.  Open your shell's configuration file (e.g., `~/.bashrc`, `~/.zshrc`, or `~/.profile`).
+2.  Add the following line, replacing `/path/to/femboy-coding-language` with the actual absolute path to your `femboy-coding-language` directory:
+
+    ```bash
+    alias femterpreter="/path/to/femboy-coding-language/femcode/femterpreter"
+    ```
+
+3.  Save the file and restart your terminal or run `source ~/.bashrc` (or your respective config file).
+
+## 2. Basic Syntax
+
 ## 2. Basic Syntax
 
 Femcode uses keywords inspired by femboy terminology. Code blocks are defined using `Femboycore` to start a block and `Periodt` to end it.
