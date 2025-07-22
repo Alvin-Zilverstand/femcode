@@ -53,6 +53,21 @@ class WhileStatement(AST):
         self.condition = condition
         self.body = body
 
+class FunctionDefinition(AST):
+    def __init__(self, name, parameters, body):
+        self.name = name
+        self.parameters = parameters
+        self.body = body
+
+class FunctionCall(AST):
+    def __init__(self, name, arguments):
+        self.name = name
+        self.arguments = arguments
+
+class ReturnStatement(AST):
+    def __init__(self, value):
+        self.value = value
+
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
@@ -82,14 +97,27 @@ class Parser:
         if token.type == 'PRINT':
             return self.parse_print_statement()
 
-        if token.type == 'ID' and self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == 'ASSIGN':
-            return self.parse_assignment_statement()
+        if token.type == 'ID':
+            # Check for assignment
+            if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == 'ASSIGN':
+                return self.parse_assignment_statement()
+            # Check for function call as a statement
+            if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == 'LPAREN':
+                # Consume the ID token first, then parse the function call
+                name_token = self.get_next_token()
+                return self.parse_function_call(name_token)
 
         if token.type == 'FEMBOY_FEMININE':
             return self.parse_if_statement()
 
         if token.type == 'OTOKONOKO':
             return self.parse_while_statement()
+
+        if token.type == 'FUNCTION_DEF':
+            return self.parse_function_definition()
+
+        if token.type == 'RETURN':
+            return self.parse_return_statement()
 
         raise Exception(f"Invalid statement starting with token {token.type}")
 
@@ -162,6 +190,34 @@ class Parser:
 
         return WhileStatement(condition, body)
 
+    def parse_function_definition(self):
+        self.get_next_token() # Consume FUNCTION_DEF
+        name_token = self.get_next_token()
+        if name_token.type != 'ID':
+            raise Exception("Expected function name (ID)")
+        
+        # For simplicity, assume no parameters for now
+        parameters = []
+
+        if self.peek_next_token().type != 'FEMBOYCORE':
+            raise Exception("Expected 'Femboycore' to start function body")
+        self.get_next_token() # Consume FEMBOYCORE
+
+        body_statements = []
+        while self.peek_next_token().type != 'PERIODT':
+            if self.peek_next_token().type == 'EOF':
+                raise Exception("Unterminated function definition: Expected 'Periodt'")
+            body_statements.append(self.parse_statement())
+        self.get_next_token() # Consume PERIODT
+        body = Block(body_statements)
+
+        return FunctionDefinition(name_token.value, parameters, body)
+
+    def parse_return_statement(self):
+        self.get_next_token() # Consume RETURN
+        value = self.expression()
+        return ReturnStatement(value)
+
     def factor(self):
         token = self.get_next_token()
         if token.type == 'INTEGER':
@@ -169,6 +225,9 @@ class Parser:
         elif token.type == 'STRING':
             return String(token) # Now returns a String AST node
         elif token.type == 'ID':
+            # Check for function call
+            if self.peek_next_token().value == '(': # Assuming '(' is the next token for a function call
+                return self.parse_function_call(token)
             return Variable(token)
         else:
             raise Exception(f"Expected integer, string or identifier, got {token.type}")
@@ -195,3 +254,13 @@ class Parser:
             node = Comparison(left=node, op=op_token, right=right_node)
 
         return node
+
+    def parse_function_call(self, name_token):
+        self.get_next_token() # Consume '('
+        arguments = []
+        # For simplicity, assume no arguments for now
+        if self.peek_next_token().value == ')':
+            self.get_next_token() # Consume ')'
+        else:
+            raise Exception("Expected ')' after function call")
+        return FunctionCall(name_token.value, arguments)

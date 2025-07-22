@@ -44,6 +44,14 @@ class Lexer:
                 self.pos += 1
             return Token('INTEGER', int(self.text[start_pos:self.pos]))
 
+        # Parentheses
+        if current_char == '(':
+            self.pos += 1
+            return Token('LPAREN', '(')
+        if current_char == ')':
+            self.pos += 1
+            return Token('RPAREN', ')')
+
         # Operators
         if current_char == '+':
             self.pos += 1
@@ -93,6 +101,12 @@ class Lexer:
         if re.match(r'\bOtokonoko\b', self.text[self.pos:]):
             self.pos += len('Otokonoko')
             return Token('OTOKONOKO', 'Otokonoko')
+        if re.match(r'\bFemboy\b', self.text[self.pos:]):
+            self.pos += len('Femboy')
+            return Token('FUNCTION_DEF', 'Femboy')
+        if re.match(r'\bFemme\b', self.text[self.pos:]):
+            self.pos += len('Femme')
+            return Token('RETURN', 'Femme')
         if re.match(r'\bis\b', self.text[self.pos:]):
             self.pos += 2
             return Token('ASSIGN', 'is')

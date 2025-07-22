@@ -2,6 +2,7 @@ class Interpreter:
     def __init__(self, ast):
         self.ast = ast
         self.variables = {}
+        self.functions = {}
 
     def interpret(self):
         for node in self.ast:
@@ -79,3 +80,31 @@ class Interpreter:
     def visit_WhileStatement(self, node):
         while self.visit(node.condition):
             self.visit(node.body)
+
+    def visit_FunctionDefinition(self, node):
+        self.functions[node.name] = {
+            'parameters': node.parameters,
+            'body': node.body
+        }
+
+    def visit_FunctionCall(self, node):
+        func_name = node.name
+        if func_name not in self.functions:
+            raise NameError(f"Function '{func_name}' is not defined")
+
+        func_info = self.functions[func_name]
+        # For simplicity, no arguments are passed for now
+        # In a real interpreter, you'd push a new scope and bind arguments to parameters
+
+        # Execute function body
+        try:
+            self.visit(func_info['body'])
+        except ReturnValue as e:
+            return e.value
+
+    def visit_ReturnStatement(self, node):
+        raise ReturnValue(self.visit(node.value))
+
+class ReturnValue(Exception):
+    def __init__(self, value):
+        self.value = value
