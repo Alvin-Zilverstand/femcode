@@ -151,6 +151,14 @@ Femcode supports floating-point numbers (decimals).
 my_float is 3.14
 ```
 
+### Floating-Point Numbers
+
+Femcode supports floating-point numbers (decimals).
+
+```femcode
+my_float is 3.14
+```
+
 ### Strings
 
 Strings are sequences of characters enclosed in double quotes.
