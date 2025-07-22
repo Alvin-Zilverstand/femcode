@@ -29,6 +29,12 @@ class Lexer:
 
         current_char = self.text[self.pos]
 
+        # Handle comments
+        if current_char == '#':
+            while self.pos < len(self.text) and self.text[self.pos] != '\n':
+                self.pos += 1
+            return self.get_next_token() # Recursively call to get the next actual token
+
         if current_char == '"':
             self.pos += 1
             string_start = self.pos
