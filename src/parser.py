@@ -274,7 +274,7 @@ class Parser:
                 return self.parse_function_call(token)
             elif next_token.type == 'DOT':
                 # It's a property access
-                return self.parse_property_access(Variable(token)) # Pass Variable node as target
+                return self.parse_property_access(Variable(token))
             elif next_token.type == 'LBRACKET':
                 # It's an index access
                 return self.parse_index_access(Variable(token))
