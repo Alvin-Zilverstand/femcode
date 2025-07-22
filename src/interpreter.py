@@ -18,15 +18,36 @@ class Interpreter:
     def visit_Number(self, node):
         return node.value
 
+    def visit_String(self, node):
+        return node.value
+
     def visit_BinOp(self, node):
+        left_val = self.visit(node.left)
+        right_val = self.visit(node.right)
         if node.op.type == 'PLUS':
-            return self.visit(node.left) + self.visit(node.right)
+            return left_val + right_val
         elif node.op.type == 'MINUS':
-            return self.visit(node.left) - self.visit(node.right)
+            return left_val - right_val
         elif node.op.type == 'MUL':
-            return self.visit(node.left) * self.visit(node.right)
+            return left_val * right_val
         elif node.op.type == 'DIV':
-            return self.visit(node.left) / self.visit(node.right)
+            return left_val / right_val
+
+    def visit_Comparison(self, node):
+        left_val = self.visit(node.left)
+        right_val = self.visit(node.right)
+        if node.op.type == 'EQ':
+            return left_val == right_val
+        elif node.op.type == 'NEQ':
+            return left_val != right_val
+        elif node.op.type == 'GT':
+            return left_val > right_val
+        elif node.op.type == 'GTE':
+            return left_val >= right_val
+        elif node.op.type == 'LT':
+            return left_val < right_val
+        elif node.op.type == 'LTE':
+            return left_val <= right_val
 
     def visit_Print(self, node):
         value_to_print = self.visit(node.value)
@@ -43,3 +64,14 @@ class Interpreter:
             return self.variables[var_name]
         else:
             raise NameError(f"name '{var_name}' is not defined")
+
+    def visit_Block(self, node):
+        for statement in node.statements:
+            self.visit(statement)
+
+    def visit_IfStatement(self, node):
+        condition_result = self.visit(node.condition)
+        if condition_result:
+            self.visit(node.if_block)
+        elif node.else_block:
+            self.visit(node.else_block)

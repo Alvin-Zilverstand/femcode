@@ -44,6 +44,7 @@ class Lexer:
                 self.pos += 1
             return Token('INTEGER', int(self.text[start_pos:self.pos]))
 
+        # Operators
         if current_char == '+':
             self.pos += 1
             return Token('PLUS', '+')
@@ -56,14 +57,48 @@ class Lexer:
         if current_char == '/':
             self.pos += 1
             return Token('DIV', '/')
+        if current_char == '=':
+            if self.pos + 1 < len(self.text) and self.text[self.pos + 1] == '=':
+                self.pos += 2
+                return Token('EQ', '==')
+        if current_char == '!':
+            if self.pos + 1 < len(self.text) and self.text[self.pos + 1] == '=':
+                self.pos += 2
+                return Token('NEQ', '!=')
+        if current_char == '>':
+            if self.pos + 1 < len(self.text) and self.text[self.pos + 1] == '=':
+                self.pos += 2
+                return Token('GTE', '>=')
+            else:
+                self.pos += 1
+                return Token('GT', '>')
+        if current_char == '<':
+            if self.pos + 1 < len(self.text) and self.text[self.pos + 1] == '=':
+                self.pos += 2
+                return Token('LTE', '<=')
+            else:
+                self.pos += 1
+                return Token('LT', '<')
 
-        # Match keywords
+        # Match keywords (longer ones first)
+        if re.match(r'\bFemboy Feminine\b', self.text[self.pos:]):
+            self.pos += len('Femboy Feminine')
+            return Token('FEMBOY_FEMININE', 'Femboy Feminine')
         if re.match(r'\bUwU Boy\b', self.text[self.pos:]):
             self.pos += 7
             return Token('PRINT', 'UwU Boy')
+        if re.match(r'\bAndrogyny\b', self.text[self.pos:]):
+            self.pos += len('Androgyny')
+            return Token('ANDROGYNY', 'Androgyny')
         if re.match(r'\bis\b', self.text[self.pos:]):
             self.pos += 2
             return Token('ASSIGN', 'is')
+        if re.match(r'\bFemboycore\b', self.text[self.pos:]):
+            self.pos += len('Femboycore')
+            return Token('FEMBOYCORE', 'Femboycore')
+        if re.match(r'\bPeriodt\b', self.text[self.pos:]):
+            self.pos += len('Periodt')
+            return Token('PERIODT', 'Periodt')
 
         # Match identifiers
         match = re.match(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', self.text[self.pos:])

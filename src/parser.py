@@ -6,10 +6,21 @@ class Number(AST):
         self.token = token
         self.value = token.value
 
+class String(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
 class BinOp(AST):
     def __init__(self, left, op, right):
         self.left = left
         self.token = self.op = op
+        self.right = right
+
+class Comparison(AST):
+    def __init__(self, left, op, right):
+        self.left = left
+        self.op = op
         self.right = right
 
 class Print(AST):
@@ -26,6 +37,16 @@ class Variable(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
+
+class Block(AST):
+    def __init__(self, statements):
+        self.statements = statements
+
+class IfStatement(AST):
+    def __init__(self, condition, if_block, else_block=None):
+        self.condition = condition
+        self.if_block = if_block
+        self.else_block = else_block
 
 class Parser:
     def __init__(self, tokens):
@@ -58,14 +79,10 @@ class Parser:
 
         if token.type == 'ID' and self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == 'ASSIGN':
             return self.parse_assignment_statement()
-        elif token.type == 'ID':
-            # This case should be handled by expression parsing if it's part of an expression
-            # For now, raise an error if it's a standalone ID not part of assignment or print
-            raise Exception(f"Unexpected identifier '{token.value}' without assignment or print.")
 
-        # Handle expressions as statements (e.g., just a number or an arithmetic operation)
-        # This might need refinement depending on what we consider a valid standalone statement
-        # For now, let's assume expressions are only part of print or assignment
+        if token.type == 'FEMBOY_FEMININE':
+            return self.parse_if_statement()
+
         raise Exception(f"Invalid statement starting with token {token.type}")
 
     def parse_print_statement(self):
@@ -82,12 +99,48 @@ class Parser:
         right_expr = self.expression()
         return Assign(left=var_node, op=assign_token, right=right_expr)
 
+    def parse_if_statement(self):
+        self.get_next_token() # Consume FEMBOY_FEMININE
+
+        condition = self.expression()
+
+        # Expect Femboycore to start the if block
+        if self.peek_next_token().type != 'FEMBOYCORE':
+            raise Exception("Expected 'Femboycore' to start if block")
+        self.get_next_token() # Consume FEMBOYCORE
+
+        if_block_statements = []
+        while self.peek_next_token().type != 'PERIODT':
+            if self.peek_next_token().type == 'EOF':
+                raise Exception("Unterminated if block: Expected 'Periodt'")
+            if_block_statements.append(self.parse_statement())
+        self.get_next_token() # Consume PERIODT
+        if_block = Block(if_block_statements)
+
+        else_block = None
+        if self.peek_next_token().type == 'ANDROGYNY':
+            self.get_next_token() # Consume ANDROGYNY
+            # Expect Femboycore to start the else block
+            if self.peek_next_token().type != 'FEMBOYCORE':
+                raise Exception("Expected 'Femboycore' to start else block")
+            self.get_next_token() # Consume FEMBOYCORE
+
+            else_block_statements = []
+            while self.peek_next_token().type != 'PERIODT':
+                if self.peek_next_token().type == 'EOF':
+                    raise Exception("Unterminated else block: Expected 'Periodt'")
+                else_block_statements.append(self.parse_statement())
+            self.get_next_token() # Consume PERIODT
+            else_block = Block(else_block_statements)
+
+        return IfStatement(condition, if_block, else_block)
+
     def factor(self):
         token = self.get_next_token()
         if token.type == 'INTEGER':
             return Number(token)
         elif token.type == 'STRING':
-            return token.value # Strings are literals, not AST nodes for now
+            return String(token) # Now returns a String AST node
         elif token.type == 'ID':
             return Variable(token)
         else:
@@ -102,7 +155,16 @@ class Parser:
 
     def expression(self):
         node = self.term()
+
+        # Handle addition/subtraction
         while self.peek_next_token().type in ('PLUS', 'MINUS'):
             token = self.get_next_token()
             node = BinOp(left=node, op=token, right=self.term())
+
+        # Handle comparisons
+        if self.peek_next_token().type in ('EQ', 'NEQ', 'GT', 'GTE', 'LT', 'LTE'):
+            op_token = self.get_next_token()
+            right_node = self.expression() # Recursively parse right side of comparison
+            node = Comparison(left=node, op=op_token, right=right_node)
+
         return node
