@@ -1,0 +1,10 @@
+my_string is "Hello"
+my_list is [1, 2, 3]
+
+UwU Boy len(my_string)
+UwU Boy len(my_list)
+
+UwU Boy type(my_string)
+UwU Boy type(my_list)
+UwU Boy type(123)
+UwU Boy type(Kawaii)

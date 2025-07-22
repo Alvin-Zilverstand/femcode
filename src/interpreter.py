@@ -3,7 +3,9 @@ class Interpreter:
         self.ast = ast
         self.scope_stack = [{}]
         self.functions = {
-            "ask": self._ask_builtin
+            "ask": self._ask_builtin,
+            "len": self._len_builtin,
+            "type": self._type_builtin
         }
 
     def _ask_builtin(self, prompt):
@@ -173,6 +175,14 @@ class Interpreter:
 
     def visit_ReturnStatement(self, node):
         raise ReturnValue(self.visit(node.value))
+
+    @staticmethod
+    def _len_builtin(obj):
+        return len(obj)
+
+    @staticmethod
+    def _type_builtin(obj):
+        return str(type(obj).__name__)
 
 class ReturnValue(Exception):
     def __init__(self, value):
