@@ -69,6 +69,18 @@ class WhileStatement(AST):
         self.condition = condition
         self.body = body
 
+class ForStatement(AST):
+    def __init__(self, var_name, iterable, body):
+        self.var_name = var_name
+        self.iterable = iterable
+        self.body = body
+
+class BreakStatement(AST):
+    pass
+
+class ContinueStatement(AST):
+    pass
+
 class FunctionDefinition(AST):
     def __init__(self, name, parameters, body):
         self.name = name
@@ -147,11 +159,26 @@ class Parser:
         if token.type == 'OTOKONOKO':
             return self.parse_while_statement()
 
+        if token.type == 'FOR':
+            return self.parse_for_statement()
+
         if token.type == 'FUNCTION_DEF':
             return self.parse_function_definition()
 
         if token.type == 'RETURN':
             return self.parse_return_statement()
+
+        if token.type == 'PASS':
+            self.consume('PASS')
+            return Block([]) # A pass statement is an empty block
+
+        if token.type == 'BREAK':
+            self.consume('BREAK')
+            return BreakStatement()
+
+        if token.type == 'CONTINUE':
+            self.consume('CONTINUE')
+            return ContinueStatement()
 
         raise Exception(f"Invalid statement starting with token {token.type}")
 
@@ -217,6 +244,25 @@ class Parser:
         body = Block(body_statements)
 
         return WhileStatement(condition, body)
+
+    def parse_for_statement(self):
+        self.consume('FOR')
+        var_name_token = self.get_current_token()
+        self.consume('ID')
+        self.consume('ASSIGN') # Using ASSIGN for 'in' for now, will refine later
+        iterable_expr = self.expression()
+
+        self.consume('FEMBOYCORE')
+
+        body_statements = []
+        while self.get_current_token().type != 'PERIODT':
+            if self.get_current_token().type == 'EOF':
+                raise Exception("Unterminated for loop: Expected 'Periodt'")
+            body_statements.append(self.parse_statement())
+        self.consume('PERIODT')
+        body = Block(body_statements)
+
+        return ForStatement(var_name_token.value, iterable_expr, body)
 
     def parse_function_definition(self):
         self.consume('FUNCTION_DEF')
