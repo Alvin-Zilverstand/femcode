@@ -13,8 +13,8 @@ class Lexer:
         self.text = text
         self.pos = 0
 
-    def error(self):
-        raise Exception('Invalid character')
+    def error(self, message="Invalid character"):
+        raise Exception(f"{message} at position {self.pos}: '{self.text[self.pos]}'")
 
     def get_next_token(self):
         if self.pos > len(self.text) - 1:
@@ -57,6 +57,24 @@ class Lexer:
         if current_char == ')':
             self.pos += 1
             return Token('RPAREN', ')')
+        if current_char == '[':
+            self.pos += 1
+            return Token('LBRACKET', '[')
+        if current_char == ']':
+            self.pos += 1
+            return Token('RBRACKET', ']')
+        if current_char == '{':
+            self.pos += 1
+            return Token('LBRACE', '{')
+        if current_char == '}':
+            self.pos += 1
+            return Token('RBRACE', '}')
+        if current_char == ':':
+            self.pos += 1
+            return Token('COLON', ':')
+        if current_char == '.':
+            self.pos += 1
+            return Token('DOT', '.')
 
         # Operators
         if current_char == '+':

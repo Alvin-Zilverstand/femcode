@@ -84,31 +84,48 @@ class ReturnStatement(AST):
     def __init__(self, value):
         self.value = value
 
+class List(AST):
+    def __init__(self, elements):
+        self.elements = elements
+
+class IndexAccess(AST):
+    def __init__(self, target, index):
+        self.target = target
+        self.index = index
+
+class Dictionary(AST):
+    def __init__(self, pairs):
+        self.pairs = pairs # List of (key_expr, value_expr) tuples
+
+class PropertyAccess(AST):
+    def __init__(self, target, property_name):
+        self.target = target
+        self.property_name = property_name
+
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
         self.pos = 0
 
-    def get_next_token(self):
-        if self.pos < len(self.tokens):
-            token = self.tokens[self.pos]
-            self.pos += 1
-            return token
-        return Token('EOF', None)
-
-    def peek_next_token(self):
+    def get_current_token(self):
         if self.pos < len(self.tokens):
             return self.tokens[self.pos]
         return Token('EOF', None)
 
+    def consume(self, token_type):
+        if self.get_current_token().type == token_type:
+            self.pos += 1
+        else:
+            raise Exception(f"Expected {token_type}, got {self.get_current_token().type}")
+
     def parse(self):
         statements = []
-        while self.peek_next_token().type != 'EOF':
+        while self.get_current_token().type != 'EOF':
             statements.append(self.parse_statement())
         return statements
 
     def parse_statement(self):
-        token = self.peek_next_token()
+        token = self.get_current_token()
 
         if token.type == 'PRINT':
             return self.parse_print_statement()
@@ -120,7 +137,8 @@ class Parser:
             # Check for function call as a statement
             if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == 'LPAREN':
                 # Consume the ID token first, then parse the function call
-                name_token = self.get_next_token()
+                name_token = self.get_current_token()
+                self.consume('ID') # Consume the ID token
                 return self.parse_function_call(name_token)
 
         if token.type == 'FEMBOY_FEMININE':
@@ -138,154 +156,172 @@ class Parser:
         raise Exception(f"Invalid statement starting with token {token.type}")
 
     def parse_print_statement(self):
-        self.get_next_token()  # Consume PRINT token
+        self.consume('PRINT')
         expr = self.expression()
         return Print(expr)
 
     def parse_assignment_statement(self):
-        var_token = self.get_next_token()
+        var_token = self.get_current_token()
+        self.consume('ID')
         var_node = Variable(var_token)
         
-        assign_token = self.get_next_token()
+        self.consume('ASSIGN')
 
         right_expr = self.expression()
+        assign_token = self.tokens[self.pos - 1] # Get the consumed ASSIGN token
         return Assign(left=var_node, op=assign_token, right=right_expr)
 
     def parse_if_statement(self):
-        self.get_next_token() # Consume FEMBOY_FEMININE
+        self.consume('FEMBOY_FEMININE')
 
         condition = self.expression()
 
-        # Expect Femboycore to start the if block
-        if self.peek_next_token().type != 'FEMBOYCORE':
-            raise Exception("Expected 'Femboycore' to start if block")
-        self.get_next_token() # Consume FEMBOYCORE
+        self.consume('FEMBOYCORE')
 
         if_block_statements = []
-        while self.peek_next_token().type != 'PERIODT':
-            if self.peek_next_token().type == 'EOF':
+        while self.get_current_token().type != 'PERIODT':
+            if self.get_current_token().type == 'EOF':
                 raise Exception("Unterminated if block: Expected 'Periodt'")
             if_block_statements.append(self.parse_statement())
-        self.get_next_token() # Consume PERIODT
+        self.consume('PERIODT')
         if_block = Block(if_block_statements)
 
         else_block = None
-        if self.peek_next_token().type == 'ANDROGYNY':
-            self.get_next_token() # Consume ANDROGYNY
-            # Expect Femboycore to start the else block
-            if self.peek_next_token().type != 'FEMBOYCORE':
-                raise Exception("Expected 'Femboycore' to start else block")
-            self.get_next_token() # Consume FEMBOYCORE
+        if self.get_current_token().type == 'ANDROGYNY':
+            self.consume('ANDROGYNY')
+            self.consume('FEMBOYCORE')
 
             else_block_statements = []
-            while self.peek_next_token().type != 'PERIODT':
-                if self.peek_next_token().type == 'EOF':
+            while self.get_current_token().type != 'PERIODT':
+                if self.get_current_token().type == 'EOF':
                     raise Exception("Unterminated else block: Expected 'Periodt'")
                 else_block_statements.append(self.parse_statement())
-            self.get_next_token() # Consume PERIODT
+            self.consume('PERIODT')
             else_block = Block(else_block_statements)
 
         return IfStatement(condition, if_block, else_block)
 
     def parse_while_statement(self):
-        self.get_next_token() # Consume OTOKONOKO
+        self.consume('OTOKONOKO')
 
         condition = self.expression()
 
-        if self.peek_next_token().type != 'FEMBOYCORE':
-            raise Exception("Expected 'Femboycore' to start while loop body")
-        self.get_next_token() # Consume FEMBOYCORE
+        self.consume('FEMBOYCORE')
 
         body_statements = []
-        while self.peek_next_token().type != 'PERIODT':
-            if self.peek_next_token().type == 'EOF':
+        while self.get_current_token().type != 'PERIODT':
+            if self.get_current_token().type == 'EOF':
                 raise Exception("Unterminated while loop: Expected 'Periodt'")
             body_statements.append(self.parse_statement())
-        self.get_next_token() # Consume PERIODT
+        self.consume('PERIODT')
         body = Block(body_statements)
 
         return WhileStatement(condition, body)
 
     def parse_function_definition(self):
-        self.get_next_token() # Consume FUNCTION_DEF
-        name_token = self.get_next_token()
-        if name_token.type != 'ID':
-            raise Exception("Expected function name (ID)")
+        self.consume('FUNCTION_DEF')
+        name_token = self.get_current_token()
+        self.consume('ID')
         
         # Parse parameters
         parameters = []
-        if self.peek_next_token().type == 'LPAREN':
-            self.get_next_token() # Consume '('
-            while self.peek_next_token().type != 'RPAREN':
-                param_token = self.get_next_token()
-                if param_token.type != 'ID':
-                    raise Exception("Expected parameter name (ID)")
+        if self.get_current_token().type == 'LPAREN':
+            self.consume('LPAREN')
+            while self.get_current_token().type != 'RPAREN':
+                param_token = self.get_current_token()
+                self.consume('ID')
                 parameters.append(param_token.value)
-                if self.peek_next_token().type == 'COMMA':
-                    self.get_next_token() # Consume ','
-            self.get_next_token() # Consume ')'
+                if self.get_current_token().type == 'COMMA':
+                    self.consume('COMMA')
+            self.consume('RPAREN')
             
 
-        if self.peek_next_token().type != 'FEMBOYCORE':
-            raise Exception("Expected 'Femboycore' to start function body")
-        self.get_next_token() # Consume FEMBOYCORE
+        self.consume('FEMBOYCORE')
 
         body_statements = []
-        while self.peek_next_token().type != 'PERIODT':
-            if self.peek_next_token().type == 'EOF':
+        while self.get_current_token().type != 'PERIODT':
+            if self.get_current_token().type == 'EOF':
                 raise Exception("Unterminated function definition: Expected 'Periodt'")
             body_statements.append(self.parse_statement())
-        self.get_next_token() # Consume PERIODT
+        self.consume('PERIODT')
         body = Block(body_statements)
 
         return FunctionDefinition(name_token.value, parameters, body)
 
     def parse_return_statement(self):
-        self.get_next_token() # Consume RETURN
+        self.consume('RETURN')
         value = self.expression()
         return ReturnStatement(value)
 
     def factor(self):
-        token = self.get_next_token()
+        token = self.get_current_token()
         if token.type == 'INTEGER':
+            self.consume('INTEGER')
             return Number(token)
         elif token.type == 'STRING':
-            return String(token) # Now returns a String AST node
+            self.consume('STRING')
+            return String(token)
         elif token.type == 'KAWAII' or token.type == 'CRINGE':
+            self.consume(token.type)
             return Boolean(token)
         elif token.type == 'ID':
-            # Check for function call
-            if self.peek_next_token().type == 'LPAREN': # Assuming '(' is the next token for a function call
+            # Consume the ID token first
+            self.consume('ID')
+            # Now check what follows the ID
+            next_token = self.get_current_token()
+            if next_token.type == 'LPAREN':
+                # It's a function call
                 return self.parse_function_call(token)
-            return Variable(token)
+            elif next_token.type == 'DOT':
+                # It's a property access
+                return self.parse_property_access(Variable(token)) # Pass Variable node as target
+            elif next_token.type == 'LBRACKET':
+                # It's an index access
+                return self.parse_index_access(Variable(token))
+            else:
+                # It's a simple variable
+                return Variable(token)
         elif token.type == 'LPAREN': # Handle parenthesized expressions
+            self.consume('LPAREN')
             node = self.expression()
-            if self.get_next_token().type != 'RPAREN':
-                raise Exception("Expected ')'")
+            self.consume('RPAREN')
             return node
-        elif token.type == 'NOT': # Handle NOT operator
-            return UnaryOp(token, self.factor()) # NOT applies to the next factor/expression
+        elif token.type == 'LBRACKET': # Handle list literals
+            return self.parse_list_literal()
+        elif token.type == 'LBRACE': # Handle dictionary literals
+            return self.parse_dictionary_literal()
         else:
-            raise Exception(f"Expected integer, string, boolean or identifier, got {token.type}")
+            raise Exception(f"Expected integer, string, boolean, identifier, or literal, got {token.type}")
+
+    def unary_expression(self):
+        token = self.get_current_token()
+        if token.type == 'NOT':
+            self.consume('NOT')
+            right_node = self.unary_expression() # NOT applies to the next unary_expression
+            return UnaryOp(token, right_node)
+        return self.factor()
 
     def term(self):
-        node = self.factor()
-        while self.peek_next_token().type in ('MUL', 'DIV'):
-            token = self.get_next_token()
-            node = BinOp(left=node, op=token, right=self.factor())
+        node = self.unary_expression()
+        while self.get_current_token().type in ('MUL', 'DIV'):
+            token = self.get_current_token()
+            self.consume(token.type)
+            node = BinOp(left=node, op=token, right=self.unary_expression())
         return node
 
     def comparison_expression(self):
         node = self.term()
 
         # Handle addition/subtraction
-        while self.peek_next_token().type in ('PLUS', 'MINUS'):
-            token = self.get_next_token()
+        while self.get_current_token().type in ('PLUS', 'MINUS'):
+            token = self.get_current_token()
+            self.consume(token.type)
             node = BinOp(left=node, op=token, right=self.term())
 
         # Handle comparisons
-        if self.peek_next_token().type in ('EQ', 'NEQ', 'GT', 'GTE', 'LT', 'LTE'):
-            op_token = self.get_next_token()
+        if self.get_current_token().type in ('EQ', 'NEQ', 'GT', 'GTE', 'LT', 'LTE'):
+            op_token = self.get_current_token()
+            self.consume(op_token.type)
             right_node = self.comparison_expression() # Recursively parse right side of comparison
             node = Comparison(left=node, op=op_token, right=right_node)
 
@@ -293,21 +329,81 @@ class Parser:
 
     def expression(self):
         node = self.comparison_expression()
-        while self.peek_next_token().type in ('AND', 'OR'):
-            op_token = self.get_next_token()
+        while self.get_current_token().type in ('AND', 'OR'):
+            op_token = self.get_current_token()
+            self.consume(op_token.type)
             right_node = self.comparison_expression()
             node = LogicalOp(left=node, op=op_token, right=right_node)
         return node
 
     def parse_function_call(self, name_token):
-        self.get_next_token() # Consume '('
+        self.consume('LPAREN')
         arguments = []
-        if self.peek_next_token().type != 'RPAREN':
+        if self.get_current_token().type != 'RPAREN':
             while True:
                 arguments.append(self.expression())
-                if self.peek_next_token().type == 'COMMA':
-                    self.get_next_token() # Consume ','
+                if self.get_current_token().type == 'COMMA':
+                    self.consume('COMMA')
                 else:
-                    break # Exit loop if not COMMA (implies RPAREN or EOF)
-        self.get_next_token() # Consume ')'
+                    break
+        self.consume('RPAREN')
         return FunctionCall(name_token.value, arguments)
+
+    def parse_list_literal(self):
+        self.consume('LBRACKET')
+        elements = []
+        # Check if the list is empty
+        if self.get_current_token().type == 'RBRACKET':
+            self.consume('RBRACKET')
+            return List(elements)
+
+        # Parse first element
+        elements.append(self.expression())
+
+        # Parse subsequent elements
+        while self.get_current_token().type == 'COMMA':
+            self.consume('COMMA')
+            elements.append(self.expression())
+
+        # Expect closing bracket
+        self.consume('RBRACKET')
+
+        return List(elements)
+
+    def parse_dictionary_literal(self):
+        self.consume('LBRACE')
+        pairs = []
+        # Check if the dictionary is empty
+        if self.get_current_token().type == 'RBRACE':
+            self.consume('RBRACE')
+            return Dictionary(pairs)
+
+        # Parse first key-value pair
+        key = self.expression()
+        self.consume('COLON')
+        value = self.expression()
+        pairs.append((key, value))
+
+        # Parse subsequent key-value pairs
+        while self.get_current_token().type == 'COMMA':
+            self.consume('COMMA')
+            key = self.expression()
+            self.consume('COLON')
+            value = self.expression()
+            pairs.append((key, value))
+
+        # Expect closing brace
+        self.consume('RBRACE')
+        return Dictionary(pairs)
+
+    def parse_index_access(self, target_node):
+        self.consume('LBRACKET')
+        index_node = self.expression()
+        self.consume('RBRACKET')
+        return IndexAccess(target_node, index_node)
+
+    def parse_property_access(self, target_node):
+        self.consume('DOT') # Assuming DOT token for property access
+        property_name_token = self.get_current_token()
+        self.consume('ID')
+        return PropertyAccess(target_node, property_name_token.value)

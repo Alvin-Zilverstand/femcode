@@ -99,6 +99,34 @@ class Interpreter:
         while self.visit(node.condition):
             self.visit(node.body)
 
+    def visit_List(self, node):
+        elements = [self.visit(element) for element in node.elements]
+        return elements
+
+    def visit_IndexAccess(self, node):
+        target = self.visit(node.target)
+        index = self.visit(node.index)
+        if isinstance(target, list):
+            return target[index]
+        else:
+            raise TypeError(f"Cannot index type {type(target).__name__}")
+
+    def visit_Dictionary(self, node):
+        dictionary = {}
+        for key_expr, value_expr in node.pairs:
+            key = self.visit(key_expr)
+            value = self.visit(value_expr)
+            dictionary[key] = value
+        return dictionary
+
+    def visit_PropertyAccess(self, node):
+        target = self.visit(node.target)
+        property_name = node.property_name
+        if isinstance(target, dict):
+            return target.get(property_name)
+        else:
+            raise TypeError(f"Cannot access property '{property_name}' on type {type(target).__name__}")
+
     def visit_FunctionDefinition(self, node):
         self.functions[node.name] = {
             'parameters': node.parameters,
