@@ -2,7 +2,12 @@ class Interpreter:
     def __init__(self, ast):
         self.ast = ast
         self.scope_stack = [{}]
-        self.functions = {}
+        self.functions = {
+            "ask": self._ask_builtin
+        }
+
+    def _ask_builtin(self, prompt):
+        return input(prompt)
 
     @property
     def current_scope(self):
@@ -143,6 +148,11 @@ class Interpreter:
         # Evaluate arguments
         evaluated_arguments = [self.visit(arg) for arg in node.arguments]
 
+        # Check if it's a built-in function
+        if callable(func_info):
+            return func_info(*evaluated_arguments)
+
+        # Existing logic for user-defined functions
         # Create a new scope for the function call
         new_scope = {}
         for i, param_name in enumerate(func_info['parameters']):
