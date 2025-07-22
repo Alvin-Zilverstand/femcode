@@ -9,10 +9,12 @@ Femcode is a femboy-themed programming language designed to be simple, expressiv
 3.  [Variables and Assignment](#variables-and-assignment)
 4.  [Data Types](#data-types)
     *   [Numbers](#numbers)
+    *   [Floating-Point Numbers](#floating-point-numbers)
     *   [Strings](#strings)
     *   [Booleans](#booleans)
     *   [Lists](#lists)
     *   [Dictionaries](#dictionaries)
+    *   [Null Type](#null-type)
 5.  [Operators](#operators)
     *   [Arithmetic Operators](#arithmetic-operators)
     *   [Comparison Operators](#comparison-operators)
@@ -20,6 +22,8 @@ Femcode is a femboy-themed programming language designed to be simple, expressiv
 6.  [Control Flow](#control-flow)
     *   [Conditional Statements (If/Else)](#conditional-statements-ifelse)
     *   [Loops (While)](#loops-while)
+    *   [For Loops](#for-loops)
+    *   [Break and Continue](#break-and-continue)
 7.  [Functions](#functions)
     *   [Defining Functions](#defining-functions)
     *   [Calling Functions](#calling-functions)
@@ -139,6 +143,14 @@ Femcode supports integer numbers.
 my_number is 123
 ```
 
+### Floating-Point Numbers
+
+Femcode supports floating-point numbers (decimals).
+
+```femcode
+my_float is 3.14
+```
+
 ### Strings
 
 Strings are sequences of characters enclosed in double quotes.
@@ -182,6 +194,15 @@ Values can be accessed using dot notation (property access):
 
 ```femcode
 UwU Boy my_dict.name # Prints "Femboy"
+```
+
+### Null Type
+
+Femcode introduces `Ghosted` to represent the absence of a value, similar to `null` or `None` in other languages.
+
+```femcode
+my_null_variable is Ghosted
+UwU Boy my_null_variable # Prints Ghosted
 ```
 
 ## 5. Operators
@@ -255,6 +276,41 @@ counter is 0
 Otokonoko counter < 5 Femboycore
     UwU Boy counter
     counter is counter + 1
+Periodt
+```
+
+### For Loops
+
+Use `Tomgirl` for `for` loops to iterate over elements in a list or string.
+
+```femcode
+my_list is ["apple", "banana", "cherry"]
+Tomgirl item is my_list Femboycore
+    UwU Boy item
+Periodt
+
+my_string is "Femboy"
+Tomgirl char is my_string Femboycore
+    UwU Boy char
+Periodt
+```
+
+### Break and Continue
+
+*   `Break`: Immediately exits the current loop.
+*   `Continue`: Skips the rest of the current loop iteration and proceeds to the next.
+
+```femcode
+counter is 0
+Otokonoko counter < 10 Femboycore
+    counter is counter + 1
+    Femboy Feminine counter == 5 Femboycore
+        Break
+    Periodt
+    Femboy Feminine counter == 2 Femboycore
+        Continue
+    Periodt
+    UwU Boy counter
 Periodt
 ```
 
@@ -337,4 +393,49 @@ Input is handled via the `ask` built-in function, and output is handled via the 
 ```femcode
 name is ask("Enter your name: ")
 UwU Boy "Your name is: " + name
+```
+
+## 10. Error Handling
+
+Femcode supports basic error handling using `Twink` (try) and `Bimboy` (except) blocks.
+
+```femcode
+Twink Femboycore
+    # Code that might cause an error
+    result is 10 / 0 # This will cause a division by zero error
+    UwU Boy result
+Periodt
+Bimboy Femboycore
+    UwU Boy "An error occurred!"
+Periodt
+```
+
+## 11. Syntactic Sugar
+
+### Compound Assignment Operators
+
+Shorthand operators for common assignment operations:
+
+*   `+=` (add and assign)
+*   `-=` (subtract and assign)
+*   `*=` (multiply and assign)
+*   `/=` (divide and assign)
+
+```femcode
+count is 5
+count += 3 # Equivalent to: count is count + 3
+UwU Boy count # Prints 8
+```
+
+### Increment/Decrement Operators
+
+*   `++` (increment by 1)
+*   `--` (decrement by 1)
+
+```femcode
+value is 10
+value++ # Equivalent to: value is value + 1
+UwU Boy value # Prints 11
+value-- # Equivalent to: value is value - 1
+UwU Boy value # Prints 10
 ```
