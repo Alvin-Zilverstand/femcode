@@ -2,6 +2,26 @@
 
 This log details the features implemented and significant changes made to the Femcode programming language.
 
+## Project Context and Structure
+
+This project, `femboy-coding-language`, is located at the root directory `/home/k1tty/dev/gemini-cli/femboy-coding-language`.
+
+-   `femboy-terminoligy.txt`: A text file containing the custom keywords and their meanings used in Femcode.
+-   `femcode/`: This is the main project directory for the Femcode interpreter.
+    -   `femcode/femterpreter`: A shell script located in the `femcode/` directory that acts as a wrapper to run compiled Femcode programs. It executes the compiled Linux executable (`femcode/dist/femcode_linux`).
+    -   `femcode/src/`: Contains the core source code for the Femcode interpreter.
+        -   `femcode/src/lexer.py`: Responsible for lexical analysis, breaking down the source code into tokens.
+        -   `femcode/src/parser.py`: Responsible for syntactic analysis, building an Abstract Syntax Tree (AST) from the tokens.
+        -   `femcode/src/interpreter.py`: Responsible for semantic analysis and execution of the AST.
+        -   `femcode/src/main.py`: The entry point for the interpreter, handling file input and orchestrating the lexing, parsing, and interpretation process.
+    -   `femcode/docs/`: Contains documentation for the Femcode language.
+        -   `femcode/docs/README.md`: Comprehensive documentation of the Femcode language, including syntax, features, and usage instructions.
+    -   `femcode/examples/`: Contains example Femcode programs demonstrating various language features.
+    -   `femcode/build/`: Directory created by PyInstaller during the build process, containing intermediate build files.
+    -   `femcode/dist/`: Directory created by PyInstaller, containing the compiled standalone executables.
+        -   `femcode/dist/femcode_linux`: The compiled Linux executable of the Femcode interpreter.
+    -   `femcode/venv/`: A Python virtual environment used for managing project dependencies (e.g., PyInstaller).
+
 ## Implemented Features & Changes
 
 ### 1. Core Language Setup
