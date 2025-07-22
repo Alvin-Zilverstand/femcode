@@ -16,6 +16,17 @@ class Boolean(AST):
         self.token = token
         self.value = token.value
 
+class LogicalOp(AST):
+    def __init__(self, left, op, right=None):
+        self.left = left
+        self.op = op
+        self.right = right
+
+class UnaryOp(AST):
+    def __init__(self, op, right):
+        self.op = op
+        self.right = right
+
 class BinOp(AST):
     def __init__(self, left, op, right):
         self.left = left
@@ -240,13 +251,20 @@ class Parser:
             return Number(token)
         elif token.type == 'STRING':
             return String(token) # Now returns a String AST node
+        elif token.type == 'KAWAII' or token.type == 'CRINGE':
+            return Boolean(token)
         elif token.type == 'ID':
             # Check for function call
             if self.peek_next_token().type == 'LPAREN': # Assuming '(' is the next token for a function call
                 return self.parse_function_call(token)
             return Variable(token)
-        elif token.type == 'KAWAII' or token.type == 'CRINGE':
-            return Boolean(token)
+        elif token.type == 'LPAREN': # Handle parenthesized expressions
+            node = self.expression()
+            if self.get_next_token().type != 'RPAREN':
+                raise Exception("Expected ')'")
+            return node
+        elif token.type == 'NOT': # Handle NOT operator
+            return UnaryOp(token, self.factor()) # NOT applies to the next factor/expression
         else:
             raise Exception(f"Expected integer, string, boolean or identifier, got {token.type}")
 
@@ -257,7 +275,7 @@ class Parser:
             node = BinOp(left=node, op=token, right=self.factor())
         return node
 
-    def expression(self):
+    def comparison_expression(self):
         node = self.term()
 
         # Handle addition/subtraction
@@ -268,9 +286,17 @@ class Parser:
         # Handle comparisons
         if self.peek_next_token().type in ('EQ', 'NEQ', 'GT', 'GTE', 'LT', 'LTE'):
             op_token = self.get_next_token()
-            right_node = self.expression() # Recursively parse right side of comparison
+            right_node = self.comparison_expression() # Recursively parse right side of comparison
             node = Comparison(left=node, op=op_token, right=right_node)
 
+        return node
+
+    def expression(self):
+        node = self.comparison_expression()
+        while self.peek_next_token().type in ('AND', 'OR'):
+            op_token = self.get_next_token()
+            right_node = self.comparison_expression()
+            node = LogicalOp(left=node, op=op_token, right=right_node)
         return node
 
     def parse_function_call(self, name_token):

@@ -131,6 +131,15 @@ class Lexer:
         if re.match(r'\bCringe\b', self.text[self.pos:]):
             self.pos += len('Cringe')
             return Token('CRINGE', False)
+        if re.match(r'\band\b', self.text[self.pos:]):
+            self.pos += len('and')
+            return Token('AND', 'and')
+        if re.match(r'\bor\b', self.text[self.pos:]):
+            self.pos += len('or')
+            return Token('OR', 'or')
+        if re.match(r'\bnot\b', self.text[self.pos:]):
+            self.pos += len('not')
+            return Token('NOT', 'not')
 
         # Match identifiers
         match = re.match(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', self.text[self.pos:])

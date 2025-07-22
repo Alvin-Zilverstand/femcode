@@ -29,6 +29,16 @@ class Interpreter:
     def visit_Boolean(self, node):
         return node.value
 
+    def visit_LogicalOp(self, node):
+        if node.op.type == 'AND':
+            return self.visit(node.left) and self.visit(node.right)
+        elif node.op.type == 'OR':
+            return self.visit(node.left) or self.visit(node.right)
+
+    def visit_UnaryOp(self, node):
+        if node.op.type == 'NOT':
+            return not self.visit(node.right)
+
     def visit_BinOp(self, node):
         left_val = self.visit(node.left)
         right_val = self.visit(node.right)
