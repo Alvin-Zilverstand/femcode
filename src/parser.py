@@ -11,6 +11,11 @@ class String(AST):
         self.token = token
         self.value = token.value
 
+class Boolean(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
 class BinOp(AST):
     def __init__(self, left, op, right):
         self.left = left
@@ -240,8 +245,10 @@ class Parser:
             if self.peek_next_token().type == 'LPAREN': # Assuming '(' is the next token for a function call
                 return self.parse_function_call(token)
             return Variable(token)
+        elif token.type == 'KAWAII' or token.type == 'CRINGE':
+            return Boolean(token)
         else:
-            raise Exception(f"Expected integer, string or identifier, got {token.type}")
+            raise Exception(f"Expected integer, string, boolean or identifier, got {token.type}")
 
     def term(self):
         node = self.factor()

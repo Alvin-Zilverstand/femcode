@@ -26,6 +26,9 @@ class Interpreter:
     def visit_String(self, node):
         return node.value
 
+    def visit_Boolean(self, node):
+        return node.value
+
     def visit_BinOp(self, node):
         left_val = self.visit(node.left)
         right_val = self.visit(node.right)
