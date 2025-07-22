@@ -1,0 +1,21 @@
+my_list is ["apple", "banana", "cherry"]
+Tomgirl item is my_list Femboycore
+    UwU Boy item
+Periodt
+
+my_string is "Femboy"
+Tomgirl char is my_string Femboycore
+    UwU Boy char
+Periodt
+
+counter is 0
+Otokonoko counter < 10 Femboycore
+    counter is counter + 1
+    Femboy Feminine counter == 5 Femboycore
+        Break
+    Periodt
+    Femboy Feminine counter == 2 Femboycore
+        Continue
+    Periodt
+    UwU Boy counter
+Periodt

@@ -81,6 +81,18 @@ class BreakStatement(AST):
 class ContinueStatement(AST):
     pass
 
+class ForStatement(AST):
+    def __init__(self, var_name, iterable, body):
+        self.var_name = var_name
+        self.iterable = iterable
+        self.body = body
+
+class BreakStatement(AST):
+    pass
+
+class ContinueStatement(AST):
+    pass
+
 class FunctionDefinition(AST):
     def __init__(self, name, parameters, body):
         self.name = name

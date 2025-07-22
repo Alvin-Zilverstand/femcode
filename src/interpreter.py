@@ -104,7 +104,36 @@ class Interpreter:
 
     def visit_WhileStatement(self, node):
         while self.visit(node.condition):
-            self.visit(node.body)
+            try:
+                self.visit(node.body)
+            except BreakLoop:
+                break
+            except ContinueLoop:
+                continue
+
+    def visit_ForStatement(self, node):
+        iterable = self.visit(node.iterable)
+        if not isinstance(iterable, (list, str)):
+            raise TypeError(f"'for' loop can only iterate over lists or strings, got {type(iterable).__name__}")
+
+        for item in iterable:
+            self.scope_stack.append({})
+            self.current_scope[node.var_name] = item
+            try:
+                self.visit(node.body)
+            except BreakLoop:
+                self.scope_stack.pop()
+                break
+            except ContinueLoop:
+                self.scope_stack.pop()
+                continue
+            self.scope_stack.pop()
+
+    def visit_BreakStatement(self, node):
+        raise BreakLoop()
+
+    def visit_ContinueStatement(self, node):
+        raise ContinueLoop()
 
     def visit_List(self, node):
         elements = [self.visit(element) for element in node.elements]
@@ -187,3 +216,15 @@ class Interpreter:
 class ReturnValue(Exception):
     def __init__(self, value):
         self.value = value
+
+class BreakLoop(Exception):
+    pass
+
+class ContinueLoop(Exception):
+    pass
+
+class BreakLoop(Exception):
+    pass
+
+class ContinueLoop(Exception):
+    pass

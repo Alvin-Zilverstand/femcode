@@ -149,6 +149,21 @@ class Lexer:
         if re.match(r'\bCringe\b', self.text[self.pos:]):
             self.pos += len('Cringe')
             return Token('CRINGE', False)
+        if re.match(r'\bGhosted\b', self.text[self.pos:]):
+            self.pos += len('Ghosted')
+            return Token('NULL', None)
+        if re.match(r'\bTomgirl\b', self.text[self.pos:]):
+            self.pos += len('Tomgirl')
+            return Token('FOR', 'Tomgirl')
+        if re.match(r'\bSlay\b', self.text[self.pos:]):
+            self.pos += len('Slay')
+            return Token('PASS', 'Slay')
+        if re.match(r'\bBreak\b', self.text[self.pos:]):
+            self.pos += len('Break')
+            return Token('BREAK', 'Break')
+        if re.match(r'\bContinue\b', self.text[self.pos:]):
+            self.pos += len('Continue')
+            return Token('CONTINUE', 'Continue')
         if re.match(r'\band\b', self.text[self.pos:]):
             self.pos += len('and')
             return Token('AND', 'and')
