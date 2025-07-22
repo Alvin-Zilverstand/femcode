@@ -75,3 +75,7 @@ class Interpreter:
             self.visit(node.if_block)
         elif node.else_block:
             self.visit(node.else_block)
+
+    def visit_WhileStatement(self, node):
+        while self.visit(node.condition):
+            self.visit(node.body)

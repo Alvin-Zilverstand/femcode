@@ -48,6 +48,11 @@ class IfStatement(AST):
         self.if_block = if_block
         self.else_block = else_block
 
+class WhileStatement(AST):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
+
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
@@ -82,6 +87,9 @@ class Parser:
 
         if token.type == 'FEMBOY_FEMININE':
             return self.parse_if_statement()
+
+        if token.type == 'OTOKONOKO':
+            return self.parse_while_statement()
 
         raise Exception(f"Invalid statement starting with token {token.type}")
 
@@ -134,6 +142,25 @@ class Parser:
             else_block = Block(else_block_statements)
 
         return IfStatement(condition, if_block, else_block)
+
+    def parse_while_statement(self):
+        self.get_next_token() # Consume OTOKONOKO
+
+        condition = self.expression()
+
+        if self.peek_next_token().type != 'FEMBOYCORE':
+            raise Exception("Expected 'Femboycore' to start while loop body")
+        self.get_next_token() # Consume FEMBOYCORE
+
+        body_statements = []
+        while self.peek_next_token().type != 'PERIODT':
+            if self.peek_next_token().type == 'EOF':
+                raise Exception("Unterminated while loop: Expected 'Periodt'")
+            body_statements.append(self.parse_statement())
+        self.get_next_token() # Consume PERIODT
+        body = Block(body_statements)
+
+        return WhileStatement(condition, body)
 
     def factor(self):
         token = self.get_next_token()

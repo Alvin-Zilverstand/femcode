@@ -90,6 +90,9 @@ class Lexer:
         if re.match(r'\bAndrogyny\b', self.text[self.pos:]):
             self.pos += len('Androgyny')
             return Token('ANDROGYNY', 'Androgyny')
+        if re.match(r'\bOtokonoko\b', self.text[self.pos:]):
+            self.pos += len('Otokonoko')
+            return Token('OTOKONOKO', 'Otokonoko')
         if re.match(r'\bis\b', self.text[self.pos:]):
             self.pos += 2
             return Token('ASSIGN', 'is')
