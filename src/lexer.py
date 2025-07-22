@@ -12,182 +12,124 @@ class Lexer:
     def __init__(self, text):
         self.text = text
         self.pos = 0
+        self.token_patterns = [
+            (r'"[^"]*"', 'STRING'), # Double-quoted string literals
+            (r"'[^']*'", 'STRING'), # Single-quoted string literals
+            (r'\d+\.\d+', 'FLOAT'), # Floating-point numbers
+            (r'\d+', 'INTEGER'), # Integer numbers
+
+            (r'\+\+', 'INCREMENT'),
+            (r'--', 'DECREMENT'),
+            (r'\+=', 'PLUS_ASSIGN'),
+            (r'-=', 'MINUS_ASSIGN'),
+            (r'\*=', 'MUL_ASSIGN'),
+            (r'/=', 'DIV_ASSIGN'),
+            (r'==', 'EQ'),
+            (r'!=', 'NEQ'),
+            (r'>=', 'GTE'),
+            (r'<=', 'LTE'),
+
+            (r'\(', 'LPAREN'),
+            (r'\)', 'RPAREN'),
+            (r'\[', 'LBRACKET'),
+            (r'\]', 'RBRACKET'),
+            (r'{', 'LBRACE'),
+            (r'}', 'RBRACE'),
+            (r':', 'COLON'),
+            (r'\.', 'DOT'),
+            (r'\+', 'PLUS'),
+            (r'-', 'MINUS'),
+            (r'\*', 'MUL'),
+            (r'/', 'DIV'),
+            (r',', 'COMMA'),
+            (r'=', 'ASSIGN'),
+            (r'!', 'NOT'),
+            (r'>', 'GT'),
+            (r'<', 'LT'),
+
+            (r'\bFemboy Feminine\b', 'FEMBOY_FEMININE'),
+            (r'\bUwU Boy\b', 'PRINT'),
+            (r'\bAndrogyny\b', 'ANDROGYNY'),
+            (r'\bOtokonoko\b', 'OTOKONOKO'),
+            (r'\bFemboy\b', 'FUNCTION_DEF'),
+            (r'\bFemme\b', 'RETURN'),
+            (r'\bFemboycore\b', 'FEMBOYCORE'),
+            (r'\bPeriodt\b', 'PERIODT'),
+            (r'\bKawaii\b', 'KAWAII'),
+            (r'\bCringe\b', 'CRINGE'),
+            (r'\bGhosted\b', 'NULL'),
+            (r'\bTomgirl\b', 'FOR'),
+            (r'\bSlay\b', 'PASS'),
+            (r'\bBreak\b', 'BREAK'),
+            (r'\bContinue\b', 'CONTINUE'),
+            (r'\bTwink\b', 'TRY'),
+            (r'\bBimboy\b', 'EXCEPT'),
+            (r'\band\b', 'AND'),
+            (r'\bor\b', 'OR'),
+            (r'\bnot\b', 'NOT'),
+            (r'\bis\b', 'ASSIGN'), # 'is' is now a keyword for assignment
+            (r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', 'ID'), # Identifiers
+        ]
 
     def error(self, message="Invalid character"):
         raise Exception(f"{message} at position {self.pos}: '{self.text[self.pos]}'")
 
     def get_next_token(self):
-        if self.pos > len(self.text) - 1:
-            return Token('EOF', None)
+        while self.pos < len(self.text):
+            # 1. Consume whitespace and comments
+            self.skip_whitespace_and_comments()
 
-        # Skip whitespace
-        while self.pos < len(self.text) and self.text[self.pos].isspace():
-            self.pos += 1
+            # If we've reached the end after skipping, return EOF
+            if self.pos >= len(self.text):
+                return Token('EOF', None)
 
-        if self.pos > len(self.text) - 1:
-            return Token('EOF', None)
+            longest_match = None
+            matched_type = None
 
-        current_char = self.text[self.pos]
-
-        # Handle comments
-        if current_char == '#':
-            while self.pos < len(self.text) and self.text[self.pos] != '\n':
-                self.pos += 1
-            return self.get_next_token() # Recursively call to get the next actual token
-
-        if current_char == '"':
-            self.pos += 1
-            string_start = self.pos
-            while self.pos < len(self.text) and self.text[self.pos] != '"':
-                self.pos += 1
-            string_value = self.text[string_start:self.pos]
-            self.pos += 1 # Consume closing quote
-            return Token('STRING', string_value)
-
-        if current_char.isdigit():
-            start_pos = self.pos
-            while self.pos < len(self.text) and self.text[self.pos].isdigit():
-                self.pos += 1
-            return Token('INTEGER', int(self.text[start_pos:self.pos]))
-
-        # Parentheses
-        if current_char == '(':
-            self.pos += 1
-            return Token('LPAREN', '(')
-        if current_char == ')':
-            self.pos += 1
-            return Token('RPAREN', ')')
-        if current_char == '[':
-            self.pos += 1
-            return Token('LBRACKET', '[')
-        if current_char == ']':
-            self.pos += 1
-            return Token('RBRACKET', ']')
-        if current_char == '{':
-            self.pos += 1
-            return Token('LBRACE', '{')
-        if current_char == '}':
-            self.pos += 1
-            return Token('RBRACE', '}')
-        if current_char == ':':
-            self.pos += 1
-            return Token('COLON', ':')
-        if current_char == '.':
-            self.pos += 1
-            return Token('DOT', '.')
-
-        # Operators
-        if current_char == '+':
-            self.pos += 1
-            return Token('PLUS', '+')
-        if current_char == '-':
-            self.pos += 1
-            return Token('MINUS', '-')
-        if current_char == '*':
-            self.pos += 1
-            return Token('MUL', '*')
-        if current_char == '/':
-            self.pos += 1
-            return Token('DIV', '/')
-        if current_char == ',':
-            self.pos += 1
-            return Token('COMMA', ',')
-        if current_char == '=':
-            if self.pos + 1 < len(self.text) and self.text[self.pos + 1] == '=':
-                self.pos += 2
-                return Token('EQ', '==')
-        if current_char == '!':
-            if self.pos + 1 < len(self.text) and self.text[self.pos + 1] == '=':
-                self.pos += 2
-                return Token('NEQ', '!=')
-        if current_char == '>':
-            if self.pos + 1 < len(self.text) and self.text[self.pos + 1] == '=':
-                self.pos += 2
-                return Token('GTE', '>=')
+            # 2. Match tokens
+            for pattern, token_type in self.token_patterns:
+                match = re.match(pattern, self.text[self.pos:], re.IGNORECASE if token_type == 'ID' else 0)
+                if match:
+                    if longest_match is None or len(match.group(0)) > len(longest_match.group(0)):
+                        longest_match = match
+                        matched_type = token_type
+            
+            if longest_match:
+                value = longest_match.group(0)
+                self.pos += len(value)
+                if matched_type == 'INTEGER':
+                    return Token(matched_type, int(value))
+                elif matched_type == 'FLOAT':
+                    return Token(matched_type, float(value))
+                elif matched_type == 'KAWAII':
+                    return Token(matched_type, True)
+                elif matched_type == 'CRINGE':
+                    return Token(matched_type, False)
+                elif matched_type == 'NULL':
+                    return Token(matched_type, None)
+                else:
+                    return Token(matched_type, value)
             else:
-                self.pos += 1
-                return Token('GT', '>')
-        if current_char == '<':
-            if self.pos + 1 < len(self.text) and self.text[self.pos + 1] == '=':
-                self.pos += 2
-                return Token('LTE', '<=')
-            else:
-                self.pos += 1
-                return Token('LT', '<')
+                self.error()
 
-        # Match keywords (longer ones first)
-        if re.match(r'\bFemboy Feminine\b', self.text[self.pos:]):
-            self.pos += len('Femboy Feminine')
-            return Token('FEMBOY_FEMININE', 'Femboy Feminine')
-        if re.match(r'\bUwU Boy\b', self.text[self.pos:]):
-            self.pos += 7
-            return Token('PRINT', 'UwU Boy')
-        if re.match(r'\bAndrogyny\b', self.text[self.pos:]):
-            self.pos += len('Androgyny')
-            return Token('ANDROGYNY', 'Androgyny')
-        if re.match(r'\bOtokonoko\b', self.text[self.pos:]):
-            self.pos += len('Otokonoko')
-            return Token('OTOKONOKO', 'Otokonoko')
-        if re.match(r'\bFemboy\b', self.text[self.pos:]):
-            self.pos += len('Femboy')
-            return Token('FUNCTION_DEF', 'Femboy')
-        if re.match(r'\bFemme\b', self.text[self.pos:]):
-            self.pos += len('Femme')
-            return Token('RETURN', 'Femme')
-        if re.match(r'\bis\b', self.text[self.pos:]):
-            self.pos += 2
-            return Token('ASSIGN', 'is')
-        if re.match(r'\bFemboycore\b', self.text[self.pos:]):
-            self.pos += len('Femboycore')
-            return Token('FEMBOYCORE', 'Femboycore')
-        if re.match(r'\bPeriodt\b', self.text[self.pos:]):
-            self.pos += len('Periodt')
-            return Token('PERIODT', 'Periodt')
-        if re.match(r'\bKawaii\b', self.text[self.pos:]):
-            self.pos += len('Kawaii')
-            return Token('KAWAII', True)
-        if re.match(r'\bCringe\b', self.text[self.pos:]):
-            self.pos += len('Cringe')
-            return Token('CRINGE', False)
-        if re.match(r'\bGhosted\b', self.text[self.pos:]):
-            self.pos += len('Ghosted')
-            return Token('NULL', None)
-        if re.match(r'\bTomgirl\b', self.text[self.pos:]):
-            self.pos += len('Tomgirl')
-            return Token('FOR', 'Tomgirl')
-        if re.match(r'\bSlay\b', self.text[self.pos:]):
-            self.pos += len('Slay')
-            return Token('PASS', 'Slay')
-        if re.match(r'\bBreak\b', self.text[self.pos:]):
-            self.pos += len('Break')
-            return Token('BREAK', 'Break')
-        if re.match(r'\bContinue\b', self.text[self.pos:]):
-            self.pos += len('Continue')
-            return Token('CONTINUE', 'Continue')
-        if re.match(r'\bTwink\b', self.text[self.pos:]):
-            self.pos += len('Twink')
-            return Token('TRY', 'Twink')
-        if re.match(r'\bBimboy\b', self.text[self.pos:]):
-            self.pos += len('Bimboy')
-            return Token('EXCEPT', 'Bimboy')
-        if re.match(r'\band\b', self.text[self.pos:]):
-            self.pos += len('and')
-            return Token('AND', 'and')
-        if re.match(r'\bor\b', self.text[self.pos:]):
-            self.pos += len('or')
-            return Token('OR', 'or')
-        if re.match(r'\bnot\b', self.text[self.pos:]):
-            self.pos += len('not')
-            return Token('NOT', 'not')
+        return Token('EOF', None)
 
-        # Match identifiers
-        match = re.match(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', self.text[self.pos:])
-        if match:
-            value = match.group(0)
-            self.pos += len(value)
-            return Token('ID', value)
+    def skip_whitespace_and_comments(self):
+        while self.pos < len(self.text):
+            # Try to match whitespace
+            whitespace_match = re.match(r'\s+', self.text[self.pos:])
+            if whitespace_match:
+                self.pos += len(whitespace_match.group(0))
+                continue
 
-        self.error()
+            # Try to match comments
+            comment_match = re.match(r'#.*(?:\n|$)', self.text[self.pos:])
+            if comment_match:
+                self.pos += len(comment_match.group(0))
+                continue
+            
+            # If neither whitespace nor comment, break the loop
+            break
 
     def tokenize(self):
         tokens = []

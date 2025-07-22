@@ -83,6 +83,20 @@ class Interpreter:
         value = self.visit(node.right)
         self.current_scope[var_name] = value
 
+    def visit_Increment(self, node):
+        var_name = node.var_name.value
+        current_value = self.visit(node.var_name)
+        if not isinstance(current_value, (int, float)):
+            raise TypeError(f"Cannot increment non-numeric type {type(current_value).__name__}")
+        self.current_scope[var_name] = current_value + 1
+
+    def visit_Decrement(self, node):
+        var_name = node.var_name.value
+        current_value = self.visit(node.var_name)
+        if not isinstance(current_value, (int, float)):
+            raise TypeError(f"Cannot decrement non-numeric type {type(current_value).__name__}")
+        self.current_scope[var_name] = current_value - 1
+
     def visit_Variable(self, node):
         var_name = node.value
         # Search up the scope stack for the variable

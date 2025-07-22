@@ -1,3 +1,5 @@
+from lexer import Token
+
 class AST:
     pass
 
@@ -86,6 +88,14 @@ class TryExceptStatement(AST):
         self.try_block = try_block
         self.except_block = except_block
 
+class Increment(AST):
+    def __init__(self, var_name):
+        self.var_name = var_name
+
+class Decrement(AST):
+    def __init__(self, var_name):
+        self.var_name = var_name
+
 class FunctionDefinition(AST):
     def __init__(self, name, parameters, body):
         self.name = name
@@ -149,8 +159,18 @@ class Parser:
 
         if token.type == 'ID':
             # Check for assignment
-            if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == 'ASSIGN':
+            if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type in ('ASSIGN', 'PLUS_ASSIGN', 'MINUS_ASSIGN', 'MUL_ASSIGN', 'DIV_ASSIGN'):
                 return self.parse_assignment_statement()
+            # Check for increment/decrement as a statement
+            if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type in ('INCREMENT', 'DECREMENT'):
+                var_token = self.get_current_token()
+                self.consume('ID')
+                op_token = self.get_current_token()
+                self.consume(op_token.type)
+                if op_token.type == 'INCREMENT':
+                    return Increment(Variable(var_token))
+                else:
+                    return Decrement(Variable(var_token))
             # Check for function call as a statement
             if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == 'LPAREN':
                 # Consume the ID token first, then parse the function call
@@ -200,11 +220,23 @@ class Parser:
         self.consume('ID')
         var_node = Variable(var_token)
         
-        self.consume('ASSIGN')
+        assign_op_token = self.get_current_token()
+        if assign_op_token.type in ('ASSIGN', 'PLUS_ASSIGN', 'MINUS_ASSIGN', 'MUL_ASSIGN', 'DIV_ASSIGN'):
+            self.consume(assign_op_token.type)
+        else:
+            raise Exception(f"Expected assignment operator, got {assign_op_token.type}")
 
         right_expr = self.expression()
-        assign_token = self.tokens[self.pos - 1] # Get the consumed ASSIGN token
-        return Assign(left=var_node, op=assign_token, right=right_expr)
+
+        if assign_op_token.type == 'ASSIGN':
+            return Assign(left=var_node, op=assign_op_token, right=right_expr)
+        else:
+            # For compound assignments, create a BinOp as the right-hand side of the Assign
+            # The operation is derived from the compound assignment token type
+            op_type = assign_op_token.type.replace('_ASSIGN', '') # e.g., PLUS_ASSIGN -> PLUS
+            op_token = Token(op_type, assign_op_token.value[0]) # e.g., Token(PLUS, '+')
+            bin_op_node = BinOp(left=var_node, op=op_token, right=right_expr)
+            return Assign(left=var_node, op=Token('ASSIGN', 'is'), right=bin_op_node)
 
     def parse_if_statement(self):
         self.consume('FEMBOY_FEMININE')
@@ -326,21 +358,28 @@ class Parser:
             return Null()
         elif token.type == 'ID':
             # Consume the ID token first
+            id_token = token
             self.consume('ID')
             # Now check what follows the ID
             next_token = self.get_current_token()
             if next_token.type == 'LPAREN':
                 # It's a function call
-                return self.parse_function_call(token)
+                return self.parse_function_call(id_token)
             elif next_token.type == 'DOT':
                 # It's a property access
-                return self.parse_property_access(Variable(token)) # Pass Variable node as target
+                return self.parse_property_access(Variable(id_token)) # Pass Variable node as target
             elif next_token.type == 'LBRACKET':
                 # It's an index access
-                return self.parse_index_access(Variable(token))
+                return self.parse_index_access(Variable(id_token))
+            elif next_token.type == 'INCREMENT':
+                self.consume('INCREMENT')
+                return Increment(Variable(id_token))
+            elif next_token.type == 'DECREMENT':
+                self.consume('DECREMENT')
+                return Decrement(Variable(id_token))
             else:
                 # It's a simple variable
-                return Variable(token)
+                return Variable(id_token)
         elif token.type == 'LPAREN': # Handle parenthesized expressions
             self.consume('LPAREN')
             node = self.expression()
