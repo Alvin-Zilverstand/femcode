@@ -31,14 +31,12 @@ class Lexer:
 
         if current_char == '"':
             self.pos += 1
-            start_string = self.pos
+            string_start = self.pos
             while self.pos < len(self.text) and self.text[self.pos] != '"':
                 self.pos += 1
-            if self.pos == len(self.text):
-                self.error() # Unterminated string
-            string = self.text[start_string:self.pos]
+            string_value = self.text[string_start:self.pos]
             self.pos += 1 # Consume closing quote
-            return Token('STRING', string)
+            return Token('STRING', string_value)
 
         if current_char.isdigit():
             start_pos = self.pos
@@ -121,6 +119,12 @@ class Lexer:
         if re.match(r'\bPeriodt\b', self.text[self.pos:]):
             self.pos += len('Periodt')
             return Token('PERIODT', 'Periodt')
+        if re.match(r'\bKawaii\b', self.text[self.pos:]):
+            self.pos += len('Kawaii')
+            return Token('KAWAII', True)
+        if re.match(r'\bCringe\b', self.text[self.pos:]):
+            self.pos += len('Cringe')
+            return Token('CRINGE', False)
 
         # Match identifiers
         match = re.match(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', self.text[self.pos:])

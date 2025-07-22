@@ -196,25 +196,19 @@ class Parser:
         if name_token.type != 'ID':
             raise Exception("Expected function name (ID)")
         
-        print(f"After function name: {self.peek_next_token()}")
-
         # Parse parameters
         parameters = []
         if self.peek_next_token().type == 'LPAREN':
             self.get_next_token() # Consume '('
-            print(f"After LPAREN: {self.peek_next_token()}")
             while self.peek_next_token().type != 'RPAREN':
                 param_token = self.get_next_token()
                 if param_token.type != 'ID':
                     raise Exception("Expected parameter name (ID)")
                 parameters.append(param_token.value)
-                print(f"After parameter {param_token.value}: {self.peek_next_token()}")
                 if self.peek_next_token().type == 'COMMA':
                     self.get_next_token() # Consume ','
-                    print(f"After COMMA: {self.peek_next_token()}")
-                # No 'elif' here, the loop condition handles the RPAREN
             self.get_next_token() # Consume ')'
-            print(f"After RPAREN: {self.peek_next_token()}")
+            
 
         if self.peek_next_token().type != 'FEMBOYCORE':
             raise Exception("Expected 'Femboycore' to start function body")
@@ -243,7 +237,7 @@ class Parser:
             return String(token) # Now returns a String AST node
         elif token.type == 'ID':
             # Check for function call
-            if self.peek_next_token().value == '(': # Assuming '(' is the next token for a function call
+            if self.peek_next_token().type == 'LPAREN': # Assuming '(' is the next token for a function call
                 return self.parse_function_call(token)
             return Variable(token)
         else:
